@@ -143,7 +143,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .from('profiles')
         .select('email')
         .eq('student_id', studentId)
-        .single();
+        .maybeSingle();
 
       console.log('Profile lookup result:', { profileData, profileError });
 
