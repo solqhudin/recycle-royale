@@ -38,14 +38,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .from('profiles')
         .select('*')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('Error fetching profile:', error);
         return;
       }
 
-      setProfile(data);
+      if (data) {
+        setProfile(data);
+      }
     } catch (error) {
       console.error('Error fetching profile:', error);
     }
@@ -96,6 +98,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (studentId: string, name: string, email: string, password: string) => {
     try {
+      setLoading(true);
+      
+      // Check if student ID already exists
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('student_id')
+        .eq('student_id', studentId)
+        .maybeSingle();
+
+      if (existingProfile) {
+        const error = { message: 'รหัสนักศึกษานี้ถูกใช้งานแล้ว' };
+        toast({
+          title: "ไม่สามารถสมัครสมาชิกได้",
+          description: error.message,
+          variant: "destructive"
+        });
+        return { error };
+      }
+
       const redirectUrl = `${window.location.origin}/`;
       
       const { error } = await supabase.auth.signUp({
@@ -111,32 +132,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (error) {
+        let errorMessage = error.message;
+        if (error.message.includes('User already registered')) {
+          errorMessage = 'อีเมลนี้ถูกใช้งานแล้ว';
+        } else if (error.message.includes('Password should be at least')) {
+          errorMessage = 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร';
+        }
+        
         toast({
-          title: "Sign Up Error",
-          description: error.message,
+          title: "สมัครสมาชิกไม่สำเร็จ",
+          description: errorMessage,
           variant: "destructive"
         });
-      } else {
-        toast({
-          title: "Sign Up Successful",
-          description: "Please check your email to confirm your account.",
-        });
+        return { error };
       }
 
-      return { error };
-    } catch (error: any) {
       toast({
-        title: "Sign Up Error",
-        description: error.message,
+        title: "สมัครสมาชิกสำเร็จ",
+        description: "สามารถเข้าสู่ระบบได้ทันที",
+      });
+
+      return { error: null };
+    } catch (error: any) {
+      console.error('Sign up error:', error);
+      toast({
+        title: "เกิดข้อผิดพลาด",
+        description: "ไม่สามารถสมัครสมาชิกได้ กรุณาลองใหม่อีกครั้ง",
         variant: "destructive"
       });
       return { error };
+    } finally {
+      setLoading(false);
     }
   };
 
   const signIn = async (studentId: string, password: string) => {
     try {
-      console.log('Attempting to sign in with Student ID:', studentId);
+      setLoading(true);
       
       // First, find the user's email by student ID
       const { data: profileData, error: profileError } = await supabase
@@ -145,53 +177,69 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .eq('student_id', studentId)
         .maybeSingle();
 
-      console.log('Profile lookup result:', { profileData, profileError });
-
-      if (profileError || !profileData) {
-        const error = { message: 'Invalid Student ID or Password' };
-        console.log('Profile not found for Student ID:', studentId);
+      if (profileError) {
+        console.error('Profile lookup error:', profileError);
         toast({
-          title: "Login Error",
+          title: "เกิดข้อผิดพลาด",
+          description: "ไม่สามารถค้นหาข้อมูลผู้ใช้ได้",
+          variant: "destructive"
+        });
+        return { error: profileError };
+      }
+
+      if (!profileData) {
+        const error = { message: 'ไม่พบรหัสนักศึกษานี้ในระบบ' };
+        toast({
+          title: "ไม่พบข้อมูล",
           description: error.message,
           variant: "destructive"
         });
         return { error };
       }
 
-      console.log('Found email for Student ID:', profileData.email);
-
+      // Attempt to sign in with the found email
       const { data: authData, error } = await supabase.auth.signInWithPassword({
         email: profileData.email,
         password,
       });
 
-      console.log('Auth result:', { authData, error });
-
       if (error) {
-        console.log('Auth error:', error);
-        let errorMessage = "Invalid Student ID or Password";
+        let errorMessage = "รหัสผ่านไม่ถูกต้อง";
         
-        // Check if it's an email confirmation issue
+        // Handle specific error types
         if (error.message.includes('email') && error.message.includes('confirm')) {
-          errorMessage = "กรุณายืนยันอีเมลของคุณก่อนเข้าสู่ระบบ หรือติดต่อผู้ดูแลระบบ";
+          errorMessage = "กรุณายืนยันอีเมลของคุณก่อนเข้าสู่ระบบ";
+        } else if (error.message.includes('Invalid login credentials')) {
+          errorMessage = "รหัสผ่านไม่ถูกต้อง";
+        } else if (error.message.includes('too many requests')) {
+          errorMessage = "พยายามเข้าสู่ระบบบ่อยเกินไป กรุณารอสักครู่";
         }
         
         toast({
-          title: "Login Error", 
+          title: "เข้าสู่ระบบไม่สำเร็จ", 
           description: errorMessage,
           variant: "destructive"
         });
+        return { error };
       }
 
-      return { error };
-    } catch (error: any) {
-      console.log('Catch error:', error);
+      // Success - user will be automatically set via auth state change
       toast({
-        title: "Login Error",
-        description: error.message,
+        title: "เข้าสู่ระบบสำเร็จ",
+        description: "ยินดีต้อนรับเข้าสู่ระบบ!",
+      });
+
+      return { error: null };
+    } catch (error: any) {
+      console.error('Sign in error:', error);
+      toast({
+        title: "เกิดข้อผิดพลาด",
+        description: "ไม่สามารถเข้าสู่ระบบได้ กรุณาลองใหม่อีกครั้ง",
         variant: "destructive"
       });
       return { error };
+    } finally {
+      setLoading(false);
     }
   };
 
