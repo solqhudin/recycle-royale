@@ -136,6 +136,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (studentId: string, password: string) => {
     try {
+      console.log('Attempting to sign in with Student ID:', studentId);
+      
       // First, find the user's email by student ID
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
@@ -143,8 +145,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .eq('student_id', studentId)
         .single();
 
+      console.log('Profile lookup result:', { profileData, profileError });
+
       if (profileError || !profileData) {
         const error = { message: 'Invalid Student ID or Password' };
+        console.log('Profile not found for Student ID:', studentId);
         toast({
           title: "Login Error",
           description: error.message,
@@ -153,21 +158,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error };
       }
 
-      const { error } = await supabase.auth.signInWithPassword({
+      console.log('Found email for Student ID:', profileData.email);
+
+      const { data: authData, error } = await supabase.auth.signInWithPassword({
         email: profileData.email,
         password,
       });
 
+      console.log('Auth result:', { authData, error });
+
       if (error) {
+        console.log('Auth error:', error);
+        let errorMessage = "Invalid Student ID or Password";
+        
+        // Check if it's an email confirmation issue
+        if (error.message.includes('email') && error.message.includes('confirm')) {
+          errorMessage = "กรุณายืนยันอีเมลของคุณก่อนเข้าสู่ระบบ หรือติดต่อผู้ดูแลระบบ";
+        }
+        
         toast({
-          title: "Login Error",
-          description: "Invalid Student ID or Password",
+          title: "Login Error", 
+          description: errorMessage,
           variant: "destructive"
         });
       }
 
       return { error };
     } catch (error: any) {
+      console.log('Catch error:', error);
       toast({
         title: "Login Error",
         description: error.message,
