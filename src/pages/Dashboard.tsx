@@ -102,6 +102,17 @@ export default function Dashboard() {
             <p className="text-6xl font-bold text-primary mb-6">{profile.total_points}</p>
           </div>
 
+          <div className="mb-6">
+            <Button 
+              size="lg" 
+              variant="outline"
+              className="px-8 py-3 text-lg mr-4"
+              onClick={() => window.location.href = '/recycle-submit'}
+            >
+              Submit Recycling
+            </Button>
+          </div>
+
           <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
             <DialogTrigger asChild>
               <Button 

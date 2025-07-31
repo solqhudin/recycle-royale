@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
+import RecycleSubmit from "./pages/RecycleSubmit";
 import RecycleHistory from "./pages/RecycleHistory";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
@@ -29,6 +30,11 @@ const App = () => (
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/recycle-submit" element={
+              <ProtectedRoute>
+                <RecycleSubmit />
               </ProtectedRoute>
             } />
             <Route path="/recycle-history" element={
