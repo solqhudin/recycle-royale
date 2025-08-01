@@ -171,9 +171,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(true);
       
       // First, find the user's email by student ID
+      // Query without RLS restriction using service role
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('email')
+        .select('email, user_id')
         .eq('student_id', studentId)
         .maybeSingle();
 
