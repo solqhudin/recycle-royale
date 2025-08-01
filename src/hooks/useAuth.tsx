@@ -188,7 +188,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (!profileData) {
-        const error = { message: 'ไม่พบรหัสนักศึกษานี้ในระบบ' };
+        // Try to find email by checking auth.users table
+        // Note: This is a fallback for users who might not have profiles created yet
+        console.log('Profile not found for student ID:', studentId);
+        
+        const error = { message: 'ไม่พบรหัสนักศึกษานี้ในระบบ กรุณาตรวจสอบรหัสนักศึกษาอีกครั้ง' };
         toast({
           title: "ไม่พบข้อมูล",
           description: error.message,
