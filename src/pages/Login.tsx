@@ -36,15 +36,15 @@ export default function Login() {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="w-full max-w-md p-8">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-foreground mb-2">เข้าสู่ระบบ</h1>
-          <p className="text-foreground text-lg">กรุณากรอกรหัสนักศึกษา หรือรหัส Admin และรหัสผ่าน</p>
+          <h1 className="text-2xl font-bold text-foreground mb-2">Login</h1>
+          <p className="text-foreground text-lg">Please enter your student ID and password.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Input
               type="text"
-              placeholder="รหัสนักศึกษา หรือรหัส Admin (เช่น ADMIN001)"
+              placeholder="Student ID"
               value={loginId}
               onChange={(e) => setLoginId(e.target.value)}
               required
@@ -55,7 +55,7 @@ export default function Login() {
           <div>
             <Input
               type="password"
-              placeholder="รหัสผ่าน"
+              placeholder="Pๆassword"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -68,21 +68,22 @@ export default function Login() {
             className="w-full"
             disabled={loading}
           >
-            {loading ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
+            {loading ? 'กำลังเข้าสู่ระบบ...' : 'Login'}
           </Button>
         </form>
 
         <div className="my-6">
           <div className="relative">
+            <Separator className="mb-4" />
             <Separator />
             <div className="absolute inset-0 flex justify-center">
-              <span className="bg-card px-2 text-muted-foreground">or</span>
+              <span className="bg-card text-muted-foreground">OR</span>
             </div>
           </div>
         </div>
 
         <Button variant="outline" className="w-full" asChild>
-          <Link to="/signup">สมัครสมาชิก</Link>
+          <Link to="/signup">Sign up</Link>
         </Button>
       </Card>
     </div>
