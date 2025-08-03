@@ -18,7 +18,7 @@ interface AuthContextType {
   profile: Profile | null;
   loading: boolean;
   signUp: (studentId: string, name: string, email: string, password: string) => Promise<{ error: any }>;
-  signIn: (studentId: string, password: string) => Promise<{ error: any }>;
+  signIn: (loginId: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -166,16 +166,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signIn = async (studentId: string, password: string) => {
+  const signIn = async (loginId: string, password: string) => {
     try {
       setLoading(true);
       
-      // First, find the user's email by student ID
+      // Determine if this is admin login or student login
+      const isAdmin = loginId.startsWith('ADMIN');
+      
+      // First, find the user's email by student ID or admin ID
       // Query without RLS restriction using service role
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('email, user_id')
-        .eq('student_id', studentId)
+        .eq('student_id', loginId)
         .maybeSingle();
 
       if (profileError) {
@@ -191,9 +194,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!profileData) {
         // Try to find email by checking auth.users table
         // Note: This is a fallback for users who might not have profiles created yet
-        console.log('Profile not found for student ID:', studentId);
+        console.log('Profile not found for login ID:', loginId);
         
-        const error = { message: 'ไม่พบรหัสนักศึกษานี้ในระบบ กรุณาตรวจสอบรหัสนักศึกษาอีกครั้ง' };
+        const errorMessage = isAdmin 
+          ? 'ไม่พบรหัส Admin นี้ในระบบ กรุณาตรวจสอบรหัสอีกครั้ง'
+          : 'ไม่พบรหัสนักศึกษานี้ในระบบ กรุณาตรวจสอบรหัสนักศึกษาอีกครั้ง';
+        
+        const error = { message: errorMessage };
         toast({
           title: "ไม่พบข้อมูล",
           description: error.message,

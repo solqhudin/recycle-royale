@@ -7,7 +7,7 @@ import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function Login() {
-  const [studentId, setStudentId] = useState('');
+  const [loginId, setLoginId] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { signIn, user } = useAuth();
@@ -23,7 +23,7 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await signIn(studentId, password);
+    const { error } = await signIn(loginId, password);
     
     if (!error) {
       navigate('/dashboard');
@@ -36,17 +36,17 @@ export default function Login() {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="w-full max-w-md p-8">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-foreground mb-2">Login</h1>
-          <p className="text-foreground text-lg">Please enter student ID and password.</p>
+          <h1 className="text-2xl font-bold text-foreground mb-2">เข้าสู่ระบบ</h1>
+          <p className="text-foreground text-lg">กรุณากรอกรหัสนักศึกษา หรือรหัส Admin และรหัสผ่าน</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Input
               type="text"
-              placeholder="Student ID"
-              value={studentId}
-              onChange={(e) => setStudentId(e.target.value)}
+              placeholder="รหัสนักศึกษา หรือรหัส Admin (เช่น ADMIN001)"
+              value={loginId}
+              onChange={(e) => setLoginId(e.target.value)}
               required
               className="w-full"
             />
@@ -55,7 +55,7 @@ export default function Login() {
           <div>
             <Input
               type="password"
-              placeholder="Password"
+              placeholder="รหัสผ่าน"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -68,7 +68,7 @@ export default function Login() {
             className="w-full"
             disabled={loading}
           >
-            {loading ? 'Logging in...' : 'Login'}
+            {loading ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
           </Button>
         </form>
 
@@ -82,7 +82,7 @@ export default function Login() {
         </div>
 
         <Button variant="outline" className="w-full" asChild>
-          <Link to="/signup">Sign Up</Link>
+          <Link to="/signup">สมัครสมาชิก</Link>
         </Button>
       </Card>
     </div>
