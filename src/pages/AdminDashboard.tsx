@@ -41,7 +41,7 @@ export default function AdminDashboard() {
 
   const fetchCurrentRate = async () => {
     try {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('bottle_rates')
         .select('*')
         .eq('is_active', true)
@@ -68,33 +68,46 @@ export default function AdminDashboard() {
     try {
       setLoading(true);
       
-      const { data, error } = await supabase
+      // First get all recycling history
+      const { data: historyData, error: historyError } = await supabase
         .from('recycling_history')
-        .select(`
-          user_id,
-          bottles,
-          money_received,
-          date,
-          profiles!inner(student_id, name)
-        `)
+        .select('user_id, bottles, money_received, date')
         .order('date', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching stats:', error);
+      if (historyError) {
+        console.error('Error fetching history:', historyError);
         return;
       }
+
+      // Then get all profiles
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('user_id, student_id, name');
+
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        return;
+      }
+
+      // Create a map of user profiles for quick lookup
+      const profileMap = new Map();
+      profilesData?.forEach(profile => {
+        profileMap.set(profile.user_id, profile);
+      });
 
       // Group by user and calculate stats
       const userStats: { [key: string]: RecyclingStats } = {};
       
-      data.forEach((record: any) => {
+      historyData?.forEach((record: any) => {
         const userId = record.user_id;
-        const profile = record.profiles;
+        const profile = profileMap.get(userId);
+        
+        if (!profile) return; // Skip if no profile found
         
         if (!userStats[userId]) {
           userStats[userId] = {
-            student_id: profile.student_id,
-            name: profile.name,
+            student_id: profile.student_id || 'N/A',
+            name: profile.name || 'Unknown',
             total_bottles: 0,
             total_money: 0,
             transaction_count: 0,
@@ -125,14 +138,14 @@ export default function AdminDashboard() {
 
       // Deactivate current rate
       if (currentRate) {
-        await (supabase as any)
+        await supabase
           .from('bottle_rates')
           .update({ is_active: false })
           .eq('id', currentRate.id);
       }
 
       // Create new rate
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('bottle_rates')
         .insert({
           bottles_per_unit: newBottles,

@@ -16,9 +16,9 @@ export default function RecycleSubmit() {
   const [bottles, setBottles] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Conversion rate: 1 bottle = 1 point, 9 points = 1 Baht
-  const pointsEarned = parseInt(bottles) || 0;
-  const moneyEarned = Math.floor(pointsEarned / 9);
+  // Use default rate for display (will be calculated with actual rate on submit)
+  const bottleCount = parseInt(bottles) || 0;
+  const estimatedMoney = (bottleCount / 40) * 5; // 40 bottles = 5 baht (default rate)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,31 +37,39 @@ export default function RecycleSubmit() {
     setLoading(true);
 
     try {
-      // Add recycling history entry
+      // Get current active rate first
+      const { data: rateData, error: rateError } = await supabase
+        .from('bottle_rates')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (rateError || !rateData) {
+        throw new Error('ไม่พบข้อมูลอัตราแลกเปลี่ยน');
+      }
+
+      // Calculate money based on current rate
+      const moneyReceived = (bottleCount / rateData.bottles_per_unit) * rateData.money_per_unit;
+
+      // Add recycling history entry with calculated money
       const { error: historyError } = await supabase
         .from('recycling_history')
         .insert({
           user_id: profile.user_id,
           bottles: bottleCount,
-          money_received: moneyEarned
+          money_received: moneyReceived,
+          rate_id: rateData.id
         });
 
       if (historyError) throw historyError;
 
-      // Update user points
-      const newTotalPoints = profile.total_points + pointsEarned;
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ total_points: newTotalPoints })
-        .eq('user_id', profile.user_id);
-
-      if (profileError) throw profileError;
-
       await refreshProfile();
       
       toast({
-        title: "Success",
-        description: `Successfully submitted ${bottleCount} bottles! You earned ${pointsEarned} points.`,
+        title: "สำเร็จ",
+        description: `ส่งขวดรีไซเคิล ${bottleCount} ขวดเรียบร้อยแล้ว! ได้เงิน ${moneyReceived.toFixed(2)} บาท`,
       });
       
       navigate('/dashboard');
@@ -109,12 +117,12 @@ export default function RecycleSubmit() {
             <div className="bg-muted p-4 rounded-lg">
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span>คะแนนที่จะได้รับ:</span>
-                  <span className="font-semibold">{pointsEarned}</span>
+                  <span>จำนวนขวด:</span>
+                  <span className="font-semibold">{bottleCount} ขวด</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>เงินที่คิดได้:</span>
-                  <span className="font-semibold">{moneyEarned} บาท</span>
+                  <span>เงินที่จะได้ (ประมาณ):</span>
+                  <span className="font-semibold">{estimatedMoney.toFixed(2)} บาท</span>
                 </div>
               </div>
             </div>

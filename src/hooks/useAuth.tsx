@@ -9,7 +9,8 @@ interface Profile {
   student_id: string;
   name: string;
   email: string;
-  total_points: number;
+  created_at: string;
+  updated_at: string;
 }
 
 interface AuthContextType {
@@ -18,7 +19,7 @@ interface AuthContextType {
   profile: Profile | null;
   loading: boolean;
   signUp: (studentId: string, name: string, email: string, password: string) => Promise<{ error: any }>;
-  signIn: (loginId: string, password: string) => Promise<{ error: any }>;
+  signIn: (loginId: string, password: string) => Promise<{ success: boolean; isAdmin: boolean }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -170,86 +171,57 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true);
       
-      // Determine if this is admin login or student login
-      const isAdmin = loginId.startsWith('ADMIN');
+      // Check if loginId is an admin ID (starts with ADMIN) or student ID
+      const isAdminId = loginId.startsWith('ADMIN');
       
-      // First, find the user's email by student ID or admin ID
-      // Query without RLS restriction using service role
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('email, user_id')
-        .eq('student_id', loginId)
-        .maybeSingle();
+      // For admin login, use a predefined email format
+      const email = isAdminId 
+        ? `${loginId.toLowerCase()}@recycleapp.com`
+        : `${loginId}@university.ac.th`;
 
-      if (profileError) {
-        console.error('Profile lookup error:', profileError);
-        toast({
-          title: "เกิดข้อผิดพลาด",
-          description: "ไม่สามารถค้นหาข้อมูลผู้ใช้ได้",
-          variant: "destructive"
-        });
-        return { error: profileError };
-      }
-
-      if (!profileData) {
-        // Try to find email by checking auth.users table
-        // Note: This is a fallback for users who might not have profiles created yet
-        console.log('Profile not found for login ID:', loginId);
-        
-        const errorMessage = isAdmin 
-          ? 'ไม่พบรหัส Admin นี้ในระบบ กรุณาตรวจสอบรหัสอีกครั้ง'
-          : 'ไม่พบรหัสนักศึกษานี้ในระบบ กรุณาตรวจสอบรหัสนักศึกษาอีกครั้ง';
-        
-        const error = { message: errorMessage };
-        toast({
-          title: "ไม่พบข้อมูล",
-          description: error.message,
-          variant: "destructive"
-        });
-        return { error };
-      }
-
-      // Attempt to sign in with the found email
-      const { data: authData, error } = await supabase.auth.signInWithPassword({
-        email: profileData.email,
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
         password,
       });
 
       if (error) {
-        let errorMessage = "รหัสผ่านไม่ถูกต้อง";
-        
-        // Handle specific error types
-        if (error.message.includes('email') && error.message.includes('confirm')) {
-          errorMessage = "กรุณายืนยันอีเมลของคุณก่อนเข้าสู่ระบบ";
-        } else if (error.message.includes('Invalid login credentials')) {
-          errorMessage = "รหัสผ่านไม่ถูกต้อง";
-        } else if (error.message.includes('too many requests')) {
-          errorMessage = "พยายามเข้าสู่ระบบบ่อยเกินไป กรุณารอสักครู่";
+        if (isAdminId) {
+          toast({
+            title: "เข้าสู่ระบบไม่สำเร็จ",
+            description: "รหัส Admin หรือรหัสผ่านไม่ถูกต้อง",
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "เข้าสู่ระบบไม่สำเร็จ",
+            description: "รหัสนักศึกษาหรือรหัสผ่านไม่ถูกต้อง",
+            variant: "destructive"
+          });
         }
-        
-        toast({
-          title: "เข้าสู่ระบบไม่สำเร็จ", 
-          description: errorMessage,
-          variant: "destructive"
-        });
-        return { error };
+        return { success: false, isAdmin: false };
       }
 
-      // Success - user will be automatically set via auth state change
-      toast({
-        title: "เข้าสู่ระบบสำเร็จ",
-        description: "ยินดีต้อนรับเข้าสู่ระบบ!",
-      });
-
-      return { error: null };
+      if (data.user) {
+        setUser(data.user);
+        await fetchProfile(data.user.id);
+        
+        toast({
+          title: "เข้าสู่ระบบสำเร็จ",
+          description: "ยินดีต้อนรับเข้าสู่ระบบ!",
+        });
+        
+        return { success: true, isAdmin: isAdminId };
+      }
+      
+      return { success: false, isAdmin: false };
     } catch (error: any) {
       console.error('Sign in error:', error);
       toast({
         title: "เกิดข้อผิดพลาด",
-        description: "ไม่สามารถเข้าสู่ระบบได้ กรุณาลองใหม่อีกครั้ง",
+        description: "เกิดข้อผิดพลาดในการเข้าสู่ระบบ",
         variant: "destructive"
       });
-      return { error };
+      return { success: false, isAdmin: false };
     } finally {
       setLoading(false);
     }

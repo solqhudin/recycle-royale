@@ -36,14 +36,13 @@ export default function Dashboard() {
     
     const pointsToRedeem = parseInt(redeemPoints);
     
-    if (pointsToRedeem > profile.total_points) {
-      toast({
-        title: "Error",
-        description: "You don't have enough points to redeem.",
-        variant: "destructive"
-      });
-      return;
-    }
+    // This feature is not implemented in this version
+    toast({
+      title: "ฟีเจอร์ยังไม่พร้อมใช้งาน",
+      description: "ระบบแลกคะแนนยังไม่พร้อมใช้งาน",
+      variant: "destructive"
+    });
+    return;
 
     if (pointsToRedeem < 9) {
       toast({
@@ -57,14 +56,8 @@ export default function Dashboard() {
     setLoading(true);
 
     try {
-      const newTotalPoints = profile.total_points - pointsToRedeem;
-      
-      const { error } = await supabase
-        .from('profiles')
-        .update({ total_points: newTotalPoints })
-        .eq('user_id', profile.user_id);
-
-      if (error) throw error;
+      // This functionality is disabled
+      throw new Error('ฟีเจอร์ยังไม่พร้อมใช้งาน');
 
       await refreshProfile();
       
@@ -109,8 +102,9 @@ export default function Dashboard() {
           </div>
 
           <div className="mb-8">
-            <p className="text-lg text-foreground mb-2">Total Points</p>
-            <p className="text-6xl font-bold text-primary mb-6">{profile.total_points}</p>
+            <p className="text-lg text-foreground mb-2">สวัสดี</p>
+            <p className="text-3xl font-bold text-primary mb-6">{profile.name}</p>
+            <p className="text-lg text-muted-foreground">รหัสนักศึกษา: {profile.student_id}</p>
           </div>
 
           <div className="mb-6">
@@ -129,7 +123,7 @@ export default function Dashboard() {
               <Button 
                 size="lg" 
                 className="px-8 py-3 text-lg"
-                onClick={() => setRedeemPoints(profile.total_points.toString())}
+                onClick={() => setRedeemPoints('0')}
               >
                 แลกคะแนน
               </Button>
@@ -146,7 +140,7 @@ export default function Dashboard() {
                     type="number"
                     value={redeemPoints}
                     onChange={(e) => setRedeemPoints(e.target.value)}
-                    max={profile.total_points}
+                    max="1000"
                     min="0"
                   />
                 </div>

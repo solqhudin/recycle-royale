@@ -23,10 +23,11 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await signIn(loginId, password);
+    const result = await signIn(loginId, password);
     
-    if (!error) {
-      navigate('/dashboard');
+    if (result.success) {
+      // Redirect admin to admin dashboard, regular users to dashboard
+      navigate(result.isAdmin ? '/admin' : '/dashboard');
     }
     
     setLoading(false);

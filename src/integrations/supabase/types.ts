@@ -14,35 +14,59 @@ export type Database = {
   }
   public: {
     Tables: {
+      bottle_rates: {
+        Row: {
+          bottles_per_unit: number
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          money_per_unit: number
+          updated_at: string | null
+        }
+        Insert: {
+          bottles_per_unit: number
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          money_per_unit: number
+          updated_at?: string | null
+        }
+        Update: {
+          bottles_per_unit?: number
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          money_per_unit?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
-          created_at: string
-          email: string
+          created_at: string | null
+          email: string | null
           id: string
-          name: string
-          student_id: string
-          total_points: number
-          updated_at: string
+          name: string | null
+          student_id: string | null
+          updated_at: string | null
           user_id: string
         }
         Insert: {
-          created_at?: string
-          email: string
+          created_at?: string | null
+          email?: string | null
           id?: string
-          name: string
-          student_id: string
-          total_points?: number
-          updated_at?: string
+          name?: string | null
+          student_id?: string | null
+          updated_at?: string | null
           user_id: string
         }
         Update: {
-          created_at?: string
-          email?: string
+          created_at?: string | null
+          email?: string | null
           id?: string
-          name?: string
-          student_id?: string
-          total_points?: number
-          updated_at?: string
+          name?: string | null
+          student_id?: string | null
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
@@ -50,26 +74,64 @@ export type Database = {
       recycling_history: {
         Row: {
           bottles: number
-          created_at: string
-          date: string
+          created_at: string | null
+          date: string | null
           id: string
           money_received: number
+          rate_id: string | null
+          updated_at: string | null
           user_id: string
         }
         Insert: {
           bottles: number
-          created_at?: string
-          date?: string
+          created_at?: string | null
+          date?: string | null
           id?: string
           money_received: number
+          rate_id?: string | null
+          updated_at?: string | null
           user_id: string
         }
         Update: {
           bottles?: number
-          created_at?: string
-          date?: string
+          created_at?: string | null
+          date?: string | null
           id?: string
           money_received?: number
+          rate_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recycling_history_rate_id_fkey"
+            columns: ["rate_id"]
+            isOneToOne: false
+            referencedRelation: "bottle_rates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
@@ -79,10 +141,24 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_active_rate: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          bottles_per_unit: number
+          money_per_unit: number
+        }[]
+      }
+      has_role: {
+        Args: {
+          _user_id: string
+          _role: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -209,6 +285,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
   },
 } as const
