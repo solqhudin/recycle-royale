@@ -172,6 +172,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true);
       
+      console.log('Attempting login with ID:', loginId);
+      
       // Check if loginId is an admin ID (starts with ADMIN) or student ID
       const isAdminId = loginId.startsWith('ADMIN');
       
@@ -180,31 +182,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         ? `${loginId.toLowerCase()}@recycleapp.com`
         : `${loginId}@student.chula.ac.th`;
 
+      console.log('Constructed email:', email);
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
+      console.log('Auth response:', { data: data?.user?.id, error: error?.message });
+
       if (error) {
-        if (isAdminId) {
-          toast({
-            title: "เข้าสู่ระบบไม่สำเร็จ",
-            description: "รหัส Admin หรือรหัสผ่านไม่ถูกต้อง",
-            variant: "destructive"
-          });
+        console.error('Authentication error:', error);
+        
+        // More specific error messages based on the error type
+        let errorMessage = "";
+        if (error.message.includes('Invalid login credentials')) {
+          errorMessage = isAdminId 
+            ? "รหัส Admin หรือรหัสผ่านไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง"
+            : "รหัสนักศึกษาหรือรหัสผ่านไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง";
+        } else if (error.message.includes('Email not confirmed')) {
+          errorMessage = "กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ";
         } else {
-          toast({
-            title: "เข้าสู่ระบบไม่สำเร็จ",
-            description: "รหัสนักศึกษาหรือรหัสผ่านไม่ถูกต้อง",
-            variant: "destructive"
-          });
+          errorMessage = `เกิดข้อผิดพลาด: ${error.message}`;
         }
+        
+        toast({
+          title: "เข้าสู่ระบบไม่สำเร็จ",
+          description: errorMessage,
+          variant: "destructive"
+        });
         return { success: false, isAdmin: false };
       }
 
       if (data.user) {
+        console.log('User authenticated successfully:', data.user.id);
         setUser(data.user);
-        await fetchProfile(data.user.id);
+        
+        // Fetch profile with better error handling
+        try {
+          await fetchProfile(data.user.id);
+          console.log('Profile fetched successfully');
+        } catch (profileError) {
+          console.error('Profile fetch error:', profileError);
+          // Don't fail login if profile fetch fails
+        }
         
         toast({
           title: "เข้าสู่ระบบสำเร็จ",
@@ -214,12 +235,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { success: true, isAdmin: isAdminId };
       }
       
+      console.log('No user data received');
       return { success: false, isAdmin: false };
     } catch (error: any) {
       console.error('Sign in error:', error);
       toast({
         title: "เกิดข้อผิดพลาด",
-        description: "เกิดข้อผิดพลาดในการเข้าสู่ระบบ",
+        description: `เกิดข้อผิดพลาดในการเข้าสู่ระบบ: ${error.message || 'ไม่ทราบสาเหตุ'}`,
         variant: "destructive"
       });
       return { success: false, isAdmin: false };
