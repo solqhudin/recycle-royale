@@ -178,7 +178,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // For admin login, use a predefined email format
       const email = isAdminId 
         ? `${loginId.toLowerCase()}@recycleapp.com`
-        : `${loginId}@university.ac.th`;
+        : `${loginId}@student.chula.ac.th`;
 
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
