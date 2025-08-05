@@ -152,6 +152,10 @@ export type Database = {
           money_per_unit: number
         }[]
       }
+      get_user_email_by_student_id: {
+        Args: { _student_id: string }
+        Returns: string
+      }
       has_role: {
         Args: {
           _user_id: string
