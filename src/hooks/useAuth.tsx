@@ -177,12 +177,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Check if loginId is an admin ID (starts with ADMIN) or student ID
       const isAdminId = loginId.startsWith('ADMIN');
       
-      // For admin login, use a predefined email format
-      const email = isAdminId 
-        ? `${loginId.toLowerCase()}@recycleapp.com`
-        : `${loginId}@student.chula.ac.th`;
+      let email = '';
+      
+      if (isAdminId) {
+        // For admin login, use a predefined email format
+        email = `${loginId.toLowerCase()}@recycleapp.com`;
+      } else {
+        // For student login, first try to find the actual email from profiles
+        try {
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('email')
+            .eq('student_id', loginId)
+            .maybeSingle();
 
-      console.log('Constructed email:', email);
+          if (profile && profile.email) {
+            email = profile.email;
+            console.log('Found email from profile:', email);
+          } else {
+            // Fallback to constructed email format
+            email = `${loginId}@student.chula.ac.th`;
+            console.log('Using fallback email format:', email);
+          }
+        } catch (error) {
+          console.error('Error finding user email:', error);
+          // Fallback to constructed email format
+          email = `${loginId}@student.chula.ac.th`;
+        }
+      }
+
+      console.log('Final email for login:', email);
 
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
