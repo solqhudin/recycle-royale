@@ -37,14 +37,6 @@ export function Navigation() {
               Dashboard
             </Link>
             <Link 
-              to="/recycle-submit" 
-              className={`text-foreground hover:text-primary transition-colors ${
-                isActive('/recycle-submit') ? 'underline font-semibold' : ''
-              }`}
-            >
-              Submit Recycling
-            </Link>
-            <Link 
               to="/recycle-history" 
               className={`text-foreground hover:text-primary transition-colors ${
                 isActive('/recycle-history') ? 'underline font-semibold' : ''
