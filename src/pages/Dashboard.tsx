@@ -108,14 +108,13 @@ export default function Dashboard() {
           </div>
 
           <div className="mb-6">
-            <Button 
-              size="lg" 
-              variant="outline"
-              className="px-8 py-3 text-lg mr-4"
-              onClick={() => window.location.href = '/recycle-submit'}
-            >
-              Submit Recycling
-            </Button>
+            <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-6">
+              <p className="text-lg text-muted-foreground mb-2">คะแนนสะสม</p>
+              <p className="text-4xl font-bold text-primary">{profile.points || 0} แต้ม</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                เทียบเท่า {pointsToMoney(profile.points || 0)} บาท
+              </p>
+            </div>
           </div>
 
           <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>

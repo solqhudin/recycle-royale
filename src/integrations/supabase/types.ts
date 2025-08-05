@@ -47,6 +47,7 @@ export type Database = {
           email: string | null
           id: string
           name: string | null
+          points: number
           student_id: string | null
           updated_at: string | null
           user_id: string
@@ -56,6 +57,7 @@ export type Database = {
           email?: string | null
           id?: string
           name?: string | null
+          points?: number
           student_id?: string | null
           updated_at?: string | null
           user_id: string
@@ -65,6 +67,7 @@ export type Database = {
           email?: string | null
           id?: string
           name?: string | null
+          points?: number
           student_id?: string | null
           updated_at?: string | null
           user_id?: string

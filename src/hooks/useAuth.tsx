@@ -9,6 +9,7 @@ interface Profile {
   student_id: string;
   name: string;
   email: string;
+  points: number;
   created_at: string;
   updated_at: string;
 }
