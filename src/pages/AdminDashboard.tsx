@@ -187,6 +187,15 @@ export default function AdminDashboard() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">Admin Dashboard</h1>
           <p className="text-muted-foreground">จัดการราคาขวดและดูสถิติการแลกเงิน</p>
+          
+          <div className="mt-4 flex gap-4">
+            <Button 
+              onClick={() => window.location.href = '/admin/redemption'}
+              variant="outline"
+            >
+              แลกคะแนนเป็นเงิน
+            </Button>
+          </div>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 mb-8">

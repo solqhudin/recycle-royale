@@ -10,7 +10,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
-
+import PointRedemption from "./pages/PointRedemption";
 import RecycleHistory from "./pages/RecycleHistory";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
@@ -36,6 +36,11 @@ const App = () => (
             <Route path="/admin" element={
               <ProtectedRoute>
                 <AdminDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/redemption" element={
+              <ProtectedRoute>
+                <PointRedemption />
               </ProtectedRoute>
             } />
             <Route path="/recycle-history" element={

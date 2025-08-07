@@ -1,9 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Navigation } from '@/components/Navigation';
 import { useAuth } from '@/hooks/useAuth';
@@ -16,9 +13,6 @@ export default function Dashboard() {
   const { isAdmin, loading: roleLoading } = useUserRole();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [redeemPoints, setRedeemPoints] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   // Redirect admin users to admin dashboard
   useEffect(() => {
@@ -29,55 +23,6 @@ export default function Dashboard() {
 
   // Conversion rate: 9 points = 1 Baht
   const pointsToMoney = (points: number) => Math.floor(points / 9);
-  const moneyAmount = pointsToMoney(parseInt(redeemPoints) || 0);
-
-  const handleRedeemSubmit = async () => {
-    if (!profile) return;
-    
-    const pointsToRedeem = parseInt(redeemPoints);
-    
-    // This feature is not implemented in this version
-    toast({
-      title: "ฟีเจอร์ยังไม่พร้อมใช้งาน",
-      description: "ระบบแลกคะแนนยังไม่พร้อมใช้งาน",
-      variant: "destructive"
-    });
-    return;
-
-    if (pointsToRedeem < 9) {
-      toast({
-        title: "Error",
-        description: "Minimum redemption is 9 points (1 Baht).",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      // This functionality is disabled
-      throw new Error('ฟีเจอร์ยังไม่พร้อมใช้งาน');
-
-      await refreshProfile();
-      
-      toast({
-        title: "Success",
-        description: `Successfully redeemed ${pointsToRedeem} points for ${moneyAmount} Baht!`,
-      });
-      
-      setIsModalOpen(false);
-      setRedeemPoints('');
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (!profile) {
     return (
@@ -117,48 +62,9 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-            <DialogTrigger asChild>
-              <Button 
-                size="lg" 
-                className="px-8 py-3 text-lg"
-                onClick={() => setRedeemPoints('0')}
-              >
-                แลกคะแนน
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Redeem Points</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="points">กรอกจำนวนคะแนนที่จะแลก</Label>
-                  <Input
-                    id="points"
-                    type="number"
-                    value={redeemPoints}
-                    onChange={(e) => setRedeemPoints(e.target.value)}
-                    max="1000"
-                    min="0"
-                  />
-                </div>
-                
-                <div>
-                  <Label>ได้เงิน</Label>
-                  <p className="text-lg font-semibold">{moneyAmount} บาท</p>
-                </div>
-
-                <Button 
-                  onClick={handleRedeemSubmit} 
-                  className="w-full"
-                  disabled={loading || !redeemPoints || parseInt(redeemPoints) < 9}
-                >
-                  {loading ? 'Processing...' : 'ยืนยันแลกคะแนน'}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <div className="text-center text-muted-foreground">
+            <p className="text-sm">ติดต่อแอดมินเพื่อแลกคะแนนเป็นเงิน</p>
+          </div>
         </Card>
       </div>
     </div>
