@@ -18,14 +18,24 @@ export function Navigation() {
     <nav className="bg-card rounded-lg p-4 mb-6">
       <div className="flex gap-6">
         {isAdmin ? (
-          <Link 
-            to="/admin" 
-            className={`text-foreground hover:text-primary transition-colors ${
-              isActive('/admin') ? 'underline font-semibold' : ''
-            }`}
-          >
-            Admin Dashboard
-          </Link>
+          <>
+            <Link 
+              to="/admin" 
+              className={`text-foreground hover:text-primary transition-colors ${
+                isActive('/admin') ? 'underline font-semibold' : ''
+              }`}
+            >
+              Admin Dashboard
+            </Link>
+            <Link 
+              to="/admin/redemption" 
+              className={`text-foreground hover:text-primary transition-colors ${
+                isActive('/admin/redemption') ? 'underline font-semibold' : ''
+              }`}
+            >
+              แลกคะแนนเป็นเงิน
+            </Link>
+          </>
         ) : (
           <>
             <Link 
