@@ -41,6 +41,33 @@ export type Database = {
         }
         Relationships: []
       }
+      point_redemptions: {
+        Row: {
+          created_at: string
+          id: string
+          money_amount: number
+          points_redeemed: number
+          redeemed_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          money_amount: number
+          points_redeemed: number
+          redeemed_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          money_amount?: number
+          points_redeemed?: number
+          redeemed_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -162,6 +189,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
         }
         Returns: boolean
+      }
+      redeem_points: {
+        Args: { p_user_id: string; p_points: number; p_money: number }
+        Returns: undefined
       }
     }
     Enums: {
