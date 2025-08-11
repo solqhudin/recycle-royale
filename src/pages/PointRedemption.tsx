@@ -67,7 +67,8 @@ export default function PointRedemption() {
 
   const fetchRedemptionHistory = async () => {
     try {
-      const { data, error } = await supabase
+      // Cast supabase to any to access a table not present in generated types yet
+      const { data, error } = await (supabase as any)
         .from('point_redemptions')
         .select(`
           id,
@@ -127,10 +128,10 @@ export default function PointRedemption() {
     try {
       setRedeeming(true);
 
-      // Start transaction
-      const { error: redeemError } = await supabase.rpc('redeem_points', {
-        p_user_id: selectedProfile.user_id,
-        p_points: pointsToRedeemInt,
+      // Use a typed bypass for the RPC function missing in generated types
+      const { error: redeemError } = await (supabase as any).rpc('redeem_points', {
+        p_user_id: selectedProfile!.user_id,
+        p_points: parseInt(pointsToRedeem),
         p_money: moneyAmount
       });
 
