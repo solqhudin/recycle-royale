@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,6 +34,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     fetchCurrentRate();
@@ -163,6 +165,7 @@ export default function AdminDashboard() {
       });
 
       await fetchCurrentRate();
+      await queryClient.invalidateQueries({ queryKey: ['active-rate'] });
     } catch (error: any) {
       toast({
         title: "เกิดข้อผิดพลาด",

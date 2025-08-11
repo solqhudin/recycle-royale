@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Navigation } from '@/components/Navigation';
+import { useActiveRate } from '@/hooks/useActiveRate';
 
 interface Profile {
   user_id: string;
@@ -35,8 +36,8 @@ export default function PointRedemption() {
   const [history, setHistory] = useState<RedemptionHistory[]>([]);
   const { toast } = useToast();
 
-  // Conversion rate: 9 points = 1 Baht
-  const pointsToMoney = (points: number) => Math.floor(points / 9);
+  const { rate, loading: rateLoading, pointsToMoney } = useActiveRate();
+  const minPoints = rate?.bottles_per_unit ?? 9;
   const moneyAmount = pointsToMoney(parseInt(pointsToRedeem) || 0);
 
   useEffect(() => {
@@ -107,10 +108,10 @@ export default function PointRedemption() {
 
     const pointsToRedeemInt = parseInt(pointsToRedeem);
     
-    if (pointsToRedeemInt < 9) {
+    if (pointsToRedeemInt < minPoints) {
       toast({
         title: "ข้อผิดพลาด",
-        description: "แลกคะแนนขั้นต่ำ 9 แต้ม (1 บาท)",
+        description: `แลกคะแนนขั้นต่ำ ${minPoints} แต้ม (${rate?.money_per_unit ?? 1} บาท)`,
         variant: "destructive"
       });
       return;
@@ -235,16 +236,16 @@ export default function PointRedemption() {
                       value={pointsToRedeem}
                       onChange={(e) => setPointsToRedeem(e.target.value)}
                       max={selectedProfile.points}
-                      min="9"
-                      placeholder="ขั้นต่ำ 9 แต้ม"
+                      min={minPoints}
+                      placeholder={`ขั้นต่ำ ${minPoints} แต้ม`}
                     />
                   </div>
 
-                  {pointsToRedeem && parseInt(pointsToRedeem) >= 9 && (
+                  {pointsToRedeem && parseInt(pointsToRedeem) >= minPoints && (
                     <div className="bg-primary/10 rounded-lg p-4">
                       <p className="text-sm text-muted-foreground">จำนวนเงินที่จะได้รับ</p>
                       <p className="text-2xl font-bold text-primary">{moneyAmount} บาท</p>
-                      <p className="text-xs text-muted-foreground">อัตราแลกเปลี่ยน: 9 แต้ม = 1 บาท</p>
+                      <p className="text-xs text-muted-foreground">อัตราแลกเปลี่ยน: {minPoints} แต้ม = {rate?.money_per_unit ?? 1} บาท</p>
                     </div>
                   )}
 
@@ -252,7 +253,7 @@ export default function PointRedemption() {
                     <DialogTrigger asChild>
                       <Button 
                         className="w-full"
-                        disabled={!pointsToRedeem || parseInt(pointsToRedeem) < 9 || parseInt(pointsToRedeem) > selectedProfile.points}
+                        disabled={!pointsToRedeem || parseInt(pointsToRedeem) < minPoints || parseInt(pointsToRedeem) > selectedProfile.points}
                       >
                         แลกคะแนน
                       </Button>

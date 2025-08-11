@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+
 import { Card } from '@/components/ui/card';
 import { Navigation } from '@/components/Navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+
+import { useActiveRate } from '@/hooks/useActiveRate';
 
 export default function Dashboard() {
   const { profile, refreshProfile } = useAuth();
   const { isAdmin, loading: roleLoading } = useUserRole();
-  const { toast } = useToast();
+  
   const navigate = useNavigate();
 
   // Redirect admin users to admin dashboard
@@ -21,8 +21,7 @@ export default function Dashboard() {
     }
   }, [isAdmin, roleLoading, navigate]);
 
-  // Conversion rate: 9 points = 1 Baht
-  const pointsToMoney = (points: number) => Math.floor(points / 9);
+  const { rate, loading: rateLoading, pointsToMoney } = useActiveRate();
 
   if (!profile) {
     return (
